@@ -1,74 +1,53 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
-const crypto = require('crypto')
-const UserSchema = mongoose.Schema({
-    firstName:{
+const UserSchema = new mongoose.Schema({
+    firstName: {
         type: String,
+        require: true
     },
-    lastName:{
-        type:String
+    lastName: {
+        type: String,
+        require: true
     },
     email:{
         type: String,
-        unique: true,
-        required: true
+        require: true
     },
-    password:{
+    password: {
         type: String,
-        required: true
+        require: true
     },
     phone:{
         type: String,
-        required: true,
         unique: true
     },
     role:{
         type: String,
-        enum:["admin","user"],
-        default: "user"
+        enum: ["admin","user"],
+        default: "user" 
     },
-    refreshToken:{
-        type: String,
-        default: null
-    },
-    passwordChangAt:{
-        type: String,
-        default: null
-    },
-    passwordResetToken:{
-        type: String,
-        default: null
-    },
-    passwordResetExprise:{
-        type: String
-    },
-    isBlocked: {
-        type: Boolean,
+    isBlocked:{
+        type:Boolean,
+        desc: String,
         default: false
-    }
+    },
+    cart:{
+        type: Array,
+        default: []
+    },
+    address:[{type:mongoose.Types.ObjectId, ref:"Address"}],
+    wishlist: [{type:mongoose.Types.ObjectId, ref:"Product"}],
+    refeshToken:{type: String}
 },{
-    versionKey: false,
     timestamps: true
 })
 
-UserSchema.pre('save',async function(next){
-    const salt = bcrypt.genSaltSync(10)
+UserSchema.pre('save', async function (next) {
+    const salt = await bcrypt.genSaltSync(10)
     this.password = await bcrypt.hash(this.password, salt)
-    next()
 })
 
-UserSchema.methods = {
-    isCorrectPassword: async function(paswword) {
-        return await bcrypt.compare(paswword,this.password)
-    },
-
-    createPasswordChangeToken: function(){
-        const resetToken = crypto.randomBytes(32).toString('hex')
-        this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex')
-        this.passwordResetExprise = Date.now() + 15 * 60 * 1000
-        return resetToken
-    }   
+UserSchema.methods.checkPassword = async function(password) {
+    return await bcrypt.compare(password, this.password)
 }
-
-
-module.exports = mongoose.model("User", UserSchema)
+module.exports = mongoose.model("User",UserSchema)
