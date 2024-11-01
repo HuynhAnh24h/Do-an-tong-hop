@@ -1,7 +1,8 @@
-const { generateToken } = require('../configs/JwtToken')
+const Jwt = require('../configs/JwtToken')
 const UserModel = require('../models/User.model')
 const asyncHandler = require('express-async-handler')
 const ValidateMongo = require('../ultils/validateMongodb')
+const jwt = require('jsonwebtoken')
 module.exports ={
     // Create
     createUser: asyncHandler(async (req,res)=>{
@@ -22,6 +23,14 @@ module.exports ={
         // Check User
         const findUser = await UserModel.findOne({email: email})
         if(findUser && await findUser.checkPassword(password)){
+            const resetToken = await Jwt.resetToken(findUser?._id)
+            const updateUser = await UserModel.findByIdAndUpdate(findUser.id,{
+                resetToken: resetToken
+            },{new:true})
+            res.cookie('resetToken',resetToken,{
+                httpOnly: true,
+                maxAge: 24*60*60*1000,
+            })
             res.json({
                 message: "Login Success",
                 _id: findUser?._id,
@@ -29,7 +38,8 @@ module.exports ={
                 lastName: findUser?.lastName,
                 email: findUser?.email,
                 mobile: findUser?.phone,
-                token: generateToken(findUser?._id)
+                token: Jwt.generateToken(findUser?._id),
+                updateUser
             })
         }else{
             throw new Error('Invalid Credential')
@@ -129,5 +139,45 @@ module.exports ={
         }catch(err){
             throw new Error(err)
         }
+    }),
+
+    // Handle Reset Token 
+    handleReset: asyncHandler(async(req,res)=>{
+        const cookie = req.cookies
+        if(!cookie?.resetToken) throw new Error("No reset token in cookie")
+        const resetToken = cookie.resetToken
+        const user = await UserModel.findOne({resetToken})
+        if(!user) throw new Error('No Refresh token present in db or not match')
+        jwt.verify(resetToken, process.env.JWT_SIGN,(err,decode)=>{
+            if(err || user.id !== decode.id){
+                throw new Error("Wrong Reset Token")
+            }
+            const accessToken = Jwt.generateToken(user?._id)
+            res.json({accessToken})
+        })
+        res.json({user})
+    }),
+
+    // Logout User
+    logOut: asyncHandler(async(req,res)=>{
+        const cookie = req.cookies
+        if(!cookie?.resetToken) throw new Error('No Reset Token in Cookie')
+        const resetToken = cookie.resetToken
+        const user = await UserModel.find({resetToken})
+        if(!user){
+            res.clearCookie('resetToken',{
+                httpOnly: true,
+                secure: true
+            })
+            return res.sendStatus(204)
+        }
+        await UserModel.findOneAndUpdate({resetToken},{
+            resetToken:"",
+        })
+        res.clearCookie('resetToken',{
+            httpOnly: true,
+            secure: true
+        })
+        return res.sendStatus(204)
     })
 }

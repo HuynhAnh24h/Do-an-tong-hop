@@ -37,7 +37,7 @@ const UserSchema = new mongoose.Schema({
     },
     address:[{type:mongoose.Types.ObjectId, ref:"Address"}],
     wishlist: [{type:mongoose.Types.ObjectId, ref:"Product"}],
-    refeshToken:{type: String}
+    resetToken:{type: String}
 },{
     timestamps: true
 })

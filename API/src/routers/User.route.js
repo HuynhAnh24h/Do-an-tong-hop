@@ -16,6 +16,10 @@ router.get('/get-all-user',
      AuthMiddleware.checkAdmin, 
      UserController.getAllUser)
 
+// Handle  Reset Token
+router.get('/reset-token',
+    UserController.handleReset)
+
 // Get Single
 router.get('/get-user/:id',
     AuthMiddleware.authHandler, 
@@ -44,5 +48,10 @@ router.put('/un-block-user/:id',
     AuthMiddleware.authHandler, 
     AuthMiddleware.checkAdmin, 
     UserController.unBlockUser)
+
+// Logout
+router.get('/logout',UserController.logOut)
+
+
 
 module.exports = router
