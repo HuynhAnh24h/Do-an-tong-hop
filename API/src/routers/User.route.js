@@ -52,6 +52,15 @@ router.put('/un-block-user/:id',
 // Logout
 router.get('/logout',UserController.logOut)
 
+// Update Password
+router.put('/update-password',
+    AuthMiddleware.authHandler, 
+    UserController.updatePassword)
 
+// Forgot Password 
+router.post('/forgot-password', UserController.forgotPasswordToken)
+
+// Reset Password Token
+router.get('/reset-password-token',UserController.resetPasswordWithToken)
 
 module.exports = router

@@ -3,12 +3,15 @@ const app = express()
 const Router = require('./routers')
 const Database = require('./configs/Database')
 const { notFound, errHandler } = require('./middlewares/ErrorHandler')
-require('dotenv').config()
 const cookieParser = require('cookie-parser')
+const morgan = require('morgan')
 
+require('dotenv').config()
 app.use(express.json())
-app.use(express.urlencoded({extended: true}))
+app.use(express.urlencoded({extended: false}))
 app.use(cookieParser())
+app.use(morgan("dev"))
+
 Router(app)
 Database.DatabaseConnect()
 
