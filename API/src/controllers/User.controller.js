@@ -294,19 +294,6 @@ module.exports ={
     }),
 
     resetPasswordWithToken: asyncHandler(async(req,res)=>{
-        res.json("Huỳnh Anh")
-        // const {password} = req.body
-        // const {token} = req.params
-        // const hashedtoken = crypto.createHash('sha256').update(token).digest("hex")
-        // const user = await UserModel.findOne({
-        //    passwordResetToken:  hashedtoken,
-        //     passwordResetExprise: { $gt: Date.Now() }
-        // })
-        // if(!user) throw new Error("Token hết hạn vui lòng thử lại sau")
-        // user.password = password
-        // user.passwordResetToken = undefined
-        // user.passwordResetExprise = undefined
-        // await user.save()
-        // res.json(user)
+        console.log("here")
     })
 }
